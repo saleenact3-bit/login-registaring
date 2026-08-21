@@ -1,11 +1,14 @@
 from flask import Flask, request, redirect, render_template_string
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import os
 
 app = Flask(__name__)
 
 DATABASE = "users.db"
 
+
+# ---------------- DATABASE ----------------
 
 def setup_database():
     connection = sqlite3.connect(DATABASE)
@@ -23,96 +26,106 @@ def setup_database():
     connection.close()
 
 
-REGISTER_HTML = """
+# IMPORTANT:
+# This runs when Render starts the application.
+setup_database()
+
+
+# ---------------- REGISTER PAGE ----------------
+
+REGISTER_PAGE = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>Register</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f2f2f2;
+            padding: 40px;
+        }
+
+        .box {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: black;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        a {
+            display: block;
+            margin-top: 15px;
+        }
+    </style>
 </head>
 
 <body>
 
-<h1>Create Account</h1>
+<div class="box">
 
-<form method="POST">
+    <h2>Create Account</h2>
 
-    <p>
-        <input type="text"
-               name="username"
-               placeholder="Username"
-               required>
-    </p>
+    <form method="POST">
 
-    <p>
-        <input type="text"
-               name="phone"
-               placeholder="Phone Number"
-               required>
-    </p>
+        <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            required
+        >
 
-    <p>
-        <input type="password"
-               name="password"
-               placeholder="Password"
-               required>
-    </p>
+        <input
+            type="tel"
+            name="phone"
+            placeholder="Phone Number"
+            required
+        >
 
-    <p>
-        <button type="submit">Register</button>
-    </p>
+        <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+        >
 
-</form>
+        <button type="submit">
+            Register
+        </button>
 
-<p>{{ message }}</p>
+    </form>
 
-<a href="/login">Already registered? Login</a>
+    <p>{{ message }}</p>
+
+    <a href="/login">
+        Already registered? Login
+    </a>
+
+</div>
 
 </body>
 </html>
 """
 
 
-LOGIN_HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-</head>
-
-<body>
-
-<h1>Login</h1>
-
-<form method="POST">
-
-    <p>
-        <input type="text"
-               name="username"
-               placeholder="Username"
-               required>
-    </p>
-
-    <p>
-        <input type="password"
-               name="password"
-               placeholder="Password"
-               required>
-    </p>
-
-    <p>
-        <button type="submit">Login</button>
-    </p>
-
-</form>
-
-<p>{{ message }}</p>
-
-<a href="/">Create Account</a>
-
-</body>
-</html>
-"""
-
+# ---------------- REGISTER ----------------
 
 @app.route("/", methods=["GET", "POST"])
 def register():
@@ -121,38 +134,127 @@ def register():
 
     if request.method == "POST":
 
-        username = request.form["username"]
-        phone = request.form["phone"]
-        password = request.form["password"]
+        username = request.form.get("username", "").strip()
+        phone = request.form.get("phone", "").strip()
+        password = request.form.get("password", "")
 
-        password_hash = generate_password_hash(password)
+        if not username or not phone or not password:
+            message = "Please fill all fields."
 
-        try:
-            connection = sqlite3.connect(DATABASE)
+        else:
 
-            connection.execute(
-                """
-                INSERT INTO users
-                (username, phone, password_hash)
-                VALUES (?, ?, ?)
-                """,
-                (username, phone, password_hash)
-            )
+            password_hash = generate_password_hash(password)
 
-            connection.commit()
-            connection.close()
+            try:
 
-            return redirect("/login")
+                connection = sqlite3.connect(DATABASE)
 
-        except sqlite3.IntegrityError:
+                connection.execute(
+                    """
+                    INSERT INTO users
+                    (username, phone, password_hash)
+                    VALUES (?, ?, ?)
+                    """,
+                    (username, phone, password_hash)
+                )
 
-            message = "This username already exists."
+                connection.commit()
+                connection.close()
+
+                return redirect("/login")
+
+            except sqlite3.IntegrityError:
+
+                message = "Username already exists."
 
     return render_template_string(
-        REGISTER_HTML,
+        REGISTER_PAGE,
         message=message
     )
 
+
+# ---------------- LOGIN PAGE ----------------
+
+LOGIN_PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f2f2f2;
+            padding: 40px;
+        }
+
+        .box {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: black;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h2>Login</h2>
+
+    <form method="POST">
+
+        <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            required
+        >
+
+        <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+        >
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+
+    <p>{{ message }}</p>
+
+    <a href="/">
+        Create Account
+    </a>
+
+</div>
+
+</body>
+</html>
+"""
+
+
+# ---------------- LOGIN ----------------
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -161,38 +263,44 @@ def login():
 
     if request.method == "POST":
 
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
 
         connection = sqlite3.connect(DATABASE)
         connection.row_factory = sqlite3.Row
 
         user = connection.execute(
-            "SELECT * FROM users WHERE username = ?",
+            """
+            SELECT *
+            FROM users
+            WHERE username = ?
+            """,
             (username,)
         ).fetchone()
 
         connection.close()
 
-        if user is not None:
+        if user:
 
             if check_password_hash(
                 user["password_hash"],
                 password
             ):
                 message = "Login successful!"
+
             else:
                 message = "Wrong password."
 
         else:
-
             message = "Username not found."
 
     return render_template_string(
-        LOGIN_HTML,
+        LOGIN_PAGE,
         message=message
     )
 
+
+# ---------------- ADMIN PAGE ----------------
 
 @app.route("/admin")
 def admin():
@@ -202,7 +310,7 @@ def admin():
 
     users = connection.execute(
         """
-        SELECT username, phone
+        SELECT id, username, phone
         FROM users
         ORDER BY id DESC
         """
@@ -210,54 +318,92 @@ def admin():
 
     connection.close()
 
-    html = """
+    ADMIN_PAGE = """
     <!DOCTYPE html>
     <html>
+
     <head>
         <title>Admin</title>
+
+        <style>
+
+            body {
+                font-family: Arial;
+                background: #f2f2f2;
+                padding: 30px;
+            }
+
+            .user {
+                background: white;
+                padding: 20px;
+                margin: 15px auto;
+                max-width: 500px;
+                border-radius: 10px;
+            }
+
+        </style>
+
     </head>
 
     <body>
 
-    <h1>Registered Demo Users</h1>
+        <h1>Registered Users</h1>
 
-    {% for user in users %}
+        {% if users %}
 
-        <hr>
+            {% for user in users %}
 
-        <p>
-            <b>Username:</b>
-            {{ user["username"] }}
-        </p>
+                <div class="user">
 
-        <p>
-            <b>Phone:</b>
-            {{ user["phone"] }}
-        </p>
+                    <p>
+                        <b>User ID:</b>
+                        {{ user["id"] }}
+                    </p>
 
-        <p>
-            <b>Password:</b>
-            ********
-        </p>
+                    <p>
+                        <b>Username:</b>
+                        {{ user["username"] }}
+                    </p>
 
-    {% endfor %}
+                    <p>
+                        <b>Phone:</b>
+                        {{ user["phone"] }}
+                    </p>
+
+                    <p>
+                        <b>Password:</b>
+                        ********
+                    </p>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>No users registered yet.</p>
+
+        {% endif %}
 
     </body>
+
     </html>
     """
 
     return render_template_string(
-        html,
+        ADMIN_PAGE,
         users=users
     )
 
 
+# ---------------- START SERVER ----------------
+
 if __name__ == "__main__":
 
-    setup_database()
+    port = int(os.environ.get("PORT", 5000))
 
     app.run(
         host="0.0.0.0",
-        port=5000,
+        port=port,
         debug=False
     )
