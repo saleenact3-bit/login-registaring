@@ -5,24 +5,21 @@ import os
 
 app = Flask(__name__)
 
-# IMPORTANT:
-# Change this to a long random secret before using the site.
-app.secret_key = os.environ.get(
-    "SECRET_KEY",
-    "change-this-secret-key"
-)
+app.secret_key = "demo-secret-key-change-this"
 
 DATABASE = "users.db"
 
-# ---------------- ADMIN LOGIN ----------------
+# =========================
+# ADMIN LOGIN DETAILS
+# =========================
 
-ADMIN_USERNAME = "Hadi10110"
-
-# Change this value to your own private admin password.
-ADMIN_PASSWORD = "CHANGE_THIS_PASSWORD"
+ADMIN_ID = "Hadi"
+ADMIN_PASSWORD = "hadi1010"
 
 
-# ---------------- DATABASE ----------------
+# =========================
+# DATABASE
+# =========================
 
 def setup_database():
     connection = sqlite3.connect(DATABASE)
@@ -43,7 +40,9 @@ def setup_database():
 setup_database()
 
 
-# ---------------- REGISTER PAGE ----------------
+# =========================
+# REGISTER PAGE
+# =========================
 
 REGISTER_PAGE = """
 <!DOCTYPE html>
@@ -54,7 +53,7 @@ REGISTER_PAGE = """
     <style>
         body {
             font-family: Arial;
-            background: #f2f2f2;
+            background: #eeeeee;
             padding: 40px;
         }
 
@@ -137,7 +136,9 @@ REGISTER_PAGE = """
 """
 
 
-# ---------------- REGISTER ----------------
+# =========================
+# REGISTER
+# =========================
 
 @app.route("/", methods=["GET", "POST"])
 def register():
@@ -186,7 +187,9 @@ def register():
     )
 
 
-# ---------------- LOGIN PAGE ----------------
+# =========================
+# USER LOGIN PAGE
+# =========================
 
 LOGIN_PAGE = """
 <!DOCTYPE html>
@@ -197,7 +200,7 @@ LOGIN_PAGE = """
     <style>
         body {
             font-family: Arial;
-            background: #f2f2f2;
+            background: #eeeeee;
             padding: 40px;
         }
 
@@ -236,7 +239,7 @@ LOGIN_PAGE = """
 
 <div class="box">
 
-    <h2>Login</h2>
+    <h2>User Login</h2>
 
     <form method="POST">
 
@@ -273,7 +276,9 @@ LOGIN_PAGE = """
 """
 
 
-# ---------------- USER LOGIN ----------------
+# =========================
+# USER LOGIN
+# =========================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -322,7 +327,9 @@ def login():
     )
 
 
-# ---------------- ADMIN LOGIN PAGE ----------------
+# =========================
+# ADMIN LOGIN PAGE
+# =========================
 
 ADMIN_LOGIN_PAGE = """
 <!DOCTYPE html>
@@ -360,6 +367,10 @@ ADMIN_LOGIN_PAGE = """
             border: none;
             border-radius: 6px;
         }
+
+        .error {
+            color: red;
+        }
     </style>
 </head>
 
@@ -373,7 +384,7 @@ ADMIN_LOGIN_PAGE = """
 
         <input
             type="text"
-            name="admin_username"
+            name="admin_id"
             placeholder="Admin ID"
             required
         >
@@ -391,7 +402,7 @@ ADMIN_LOGIN_PAGE = """
 
     </form>
 
-    <p>{{ message }}</p>
+    <p class="error">{{ message }}</p>
 
 </div>
 
@@ -400,25 +411,29 @@ ADMIN_LOGIN_PAGE = """
 """
 
 
-# ---------------- ADMIN LOGIN ----------------
+# =========================
+# ADMIN LOGIN
+# =========================
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin_login():
 
     if session.get("admin_logged_in"):
-
         return redirect("/admin/users")
 
     message = ""
 
     if request.method == "POST":
 
-        username = request.form.get("admin_username", "")
-        password = request.form.get("admin_password", "")
+        admin_id = request.form.get("admin_id", "")
+        admin_password = request.form.get(
+            "admin_password",
+            ""
+        )
 
         if (
-            username == ADMIN_USERNAME
-            and password == ADMIN_PASSWORD
+            admin_id == ADMIN_ID
+            and admin_password == ADMIN_PASSWORD
         ):
 
             session["admin_logged_in"] = True
@@ -427,7 +442,7 @@ def admin_login():
 
         else:
 
-            message = "Invalid Admin ID or password."
+            message = "Invalid Admin ID or Password."
 
     return render_template_string(
         ADMIN_LOGIN_PAGE,
@@ -435,13 +450,14 @@ def admin_login():
     )
 
 
-# ---------------- ADMIN USERS PAGE ----------------
+# =========================
+# REGISTERED USERS PAGE
+# =========================
 
 @app.route("/admin/users")
 def admin_users():
 
     if not session.get("admin_logged_in"):
-
         return redirect("/admin")
 
     connection = sqlite3.connect(DATABASE)
@@ -457,94 +473,95 @@ def admin_users():
 
     connection.close()
 
-    ADMIN_USERS_PAGE = """
-    <!DOCTYPE html>
-    <html>
-
-    <head>
-        <title>Registered Users</title>
-
-        <style>
-
-            body {
-                font-family: Arial;
-                background: #f2f2f2;
-                padding: 30px;
-            }
-
-            .user {
-                background: white;
-                padding: 20px;
-                margin: 15px auto;
-                max-width: 500px;
-                border-radius: 10px;
-            }
-
-            .logout {
-                display: inline-block;
-                margin-bottom: 20px;
-            }
-
-        </style>
-
-    </head>
-
-    <body>
-
-        <h1>Registered Users</h1>
-
-        <a class="logout" href="/admin/logout">
-            Logout
-        </a>
-
-        {% if users %}
-
-            {% for user in users %}
-
-                <div class="user">
-
-                    <p>
-                        <b>User ID:</b>
-                        {{ user["id"] }}
-                    </p>
-
-                    <p>
-                        <b>Username:</b>
-                        {{ user["username"] }}
-                    </p>
-
-                    <p>
-                        <b>Phone:</b>
-                        {{ user["phone"] }}
-                    </p>
-
-                    <p>
-                        <b>Password:</b>
-                        ********
-                    </p>
-
-                </div>
-
-            {% endfor %}
-
-        {% else %}
-
-            <p>No registered users yet.</p>
-
-        {% endif %}
-
-    </body>
-
-    </html>
-    """
-
     return render_template_string(
-        ADMIN_USERS_PAGE,
+        """
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Registered Users</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            background: #eeeeee;
+            padding: 30px;
+        }
+
+        .user {
+            background: white;
+            padding: 20px;
+            margin: 15px auto;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        .logout {
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>Registered Users</h1>
+
+<a class="logout" href="/admin/logout">
+    Admin Logout
+</a>
+
+{% if users %}
+
+    {% for user in users %}
+
+        <div class="user">
+
+            <p>
+                <b>User ID:</b>
+                {{ user["id"] }}
+            </p>
+
+            <p>
+                <b>Username:</b>
+                {{ user["username"] }}
+            </p>
+
+            <p>
+                <b>Phone:</b>
+                {{ user["phone"] }}
+            </p>
+
+            <p>
+                <b>Password:</b>
+                ********
+            </p>
+
+        </div>
+
+    {% endfor %}
+
+{% else %}
+
+    <p>No registered users yet.</p>
+
+{% endif %}
+
+</body>
+
+</html>
+        """,
         users=users
     )
 
 
-# ---------------- ADMIN LOGOUT ----------------
+# =========================
+# ADMIN LOGOUT
+# =========================
 
 @app.route("/admin/logout")
 def admin_logout():
@@ -554,7 +571,9 @@ def admin_logout():
     return redirect("/admin")
 
 
-# ---------------- START SERVER ----------------
+# =========================
+# START SERVER
+# =========================
 
 if __name__ == "__main__":
 
