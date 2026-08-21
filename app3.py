@@ -1,11 +1,25 @@
-from flask import Flask, request, redirect, render_template_string
+from flask import Flask, request, redirect, render_template_string, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 
 app = Flask(__name__)
 
+# IMPORTANT:
+# Change this to a long random secret before using the site.
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "change-this-secret-key"
+)
+
 DATABASE = "users.db"
+
+# ---------------- ADMIN LOGIN ----------------
+
+ADMIN_USERNAME = "Hadi10110"
+
+# Change this value to your own private admin password.
+ADMIN_PASSWORD = "CHANGE_THIS_PASSWORD"
 
 
 # ---------------- DATABASE ----------------
@@ -26,8 +40,6 @@ def setup_database():
     connection.close()
 
 
-# IMPORTANT:
-# This runs when Render starts the application.
 setup_database()
 
 
@@ -67,7 +79,7 @@ REGISTER_PAGE = """
             background: black;
             color: white;
             border: none;
-            cursor: pointer;
+            border-radius: 6px;
         }
 
         a {
@@ -139,6 +151,7 @@ def register():
         password = request.form.get("password", "")
 
         if not username or not phone or not password:
+
             message = "Please fill all fields."
 
         else:
@@ -209,6 +222,12 @@ LOGIN_PAGE = """
             background: black;
             color: white;
             border: none;
+            border-radius: 6px;
+        }
+
+        a {
+            display: block;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -254,7 +273,7 @@ LOGIN_PAGE = """
 """
 
 
-# ---------------- LOGIN ----------------
+# ---------------- USER LOGIN ----------------
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -286,12 +305,15 @@ def login():
                 user["password_hash"],
                 password
             ):
+
                 message = "Login successful!"
 
             else:
+
                 message = "Wrong password."
 
         else:
+
             message = "Username not found."
 
     return render_template_string(
@@ -300,10 +322,127 @@ def login():
     )
 
 
-# ---------------- ADMIN PAGE ----------------
+# ---------------- ADMIN LOGIN PAGE ----------------
 
-@app.route("/admin")
-def admin():
+ADMIN_LOGIN_PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #eeeeee;
+            padding: 40px;
+        }
+
+        .box {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: black;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h2>Admin Login</h2>
+
+    <form method="POST">
+
+        <input
+            type="text"
+            name="admin_username"
+            placeholder="Admin ID"
+            required
+        >
+
+        <input
+            type="password"
+            name="admin_password"
+            placeholder="Admin Password"
+            required
+        >
+
+        <button type="submit">
+            Admin Login
+        </button>
+
+    </form>
+
+    <p>{{ message }}</p>
+
+</div>
+
+</body>
+</html>
+"""
+
+
+# ---------------- ADMIN LOGIN ----------------
+
+@app.route("/admin", methods=["GET", "POST"])
+def admin_login():
+
+    if session.get("admin_logged_in"):
+
+        return redirect("/admin/users")
+
+    message = ""
+
+    if request.method == "POST":
+
+        username = request.form.get("admin_username", "")
+        password = request.form.get("admin_password", "")
+
+        if (
+            username == ADMIN_USERNAME
+            and password == ADMIN_PASSWORD
+        ):
+
+            session["admin_logged_in"] = True
+
+            return redirect("/admin/users")
+
+        else:
+
+            message = "Invalid Admin ID or password."
+
+    return render_template_string(
+        ADMIN_LOGIN_PAGE,
+        message=message
+    )
+
+
+# ---------------- ADMIN USERS PAGE ----------------
+
+@app.route("/admin/users")
+def admin_users():
+
+    if not session.get("admin_logged_in"):
+
+        return redirect("/admin")
 
     connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
@@ -318,12 +457,12 @@ def admin():
 
     connection.close()
 
-    ADMIN_PAGE = """
+    ADMIN_USERS_PAGE = """
     <!DOCTYPE html>
     <html>
 
     <head>
-        <title>Admin</title>
+        <title>Registered Users</title>
 
         <style>
 
@@ -341,6 +480,11 @@ def admin():
                 border-radius: 10px;
             }
 
+            .logout {
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+
         </style>
 
     </head>
@@ -348,6 +492,10 @@ def admin():
     <body>
 
         <h1>Registered Users</h1>
+
+        <a class="logout" href="/admin/logout">
+            Logout
+        </a>
 
         {% if users %}
 
@@ -381,7 +529,7 @@ def admin():
 
         {% else %}
 
-            <p>No users registered yet.</p>
+            <p>No registered users yet.</p>
 
         {% endif %}
 
@@ -391,16 +539,28 @@ def admin():
     """
 
     return render_template_string(
-        ADMIN_PAGE,
+        ADMIN_USERS_PAGE,
         users=users
     )
+
+
+# ---------------- ADMIN LOGOUT ----------------
+
+@app.route("/admin/logout")
+def admin_logout():
+
+    session.pop("admin_logged_in", None)
+
+    return redirect("/admin")
 
 
 # ---------------- START SERVER ----------------
 
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 5000))
+    port = int(
+        os.environ.get("PORT", 5000)
+    )
 
     app.run(
         host="0.0.0.0",
