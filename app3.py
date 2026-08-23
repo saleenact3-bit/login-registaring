@@ -1,5 +1,4 @@
 from flask import Flask, request, redirect, render_template_string, session
-from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 
@@ -8,6 +7,7 @@ app = Flask(__name__)
 app.secret_key = "demo-secret-key-change-this"
 
 DATABASE = "users.db"
+
 
 # =========================
 # ADMIN LOGIN DETAILS
@@ -22,6 +22,7 @@ ADMIN_PASSWORD = "hadi1010"
 # =========================
 
 def setup_database():
+
     connection = sqlite3.connect(DATABASE)
 
     connection.execute("""
@@ -29,7 +30,7 @@ def setup_database():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             phone TEXT NOT NULL,
-            password_hash TEXT NOT NULL
+            password TEXT NOT NULL
         )
     """)
 
@@ -47,10 +48,13 @@ setup_database()
 REGISTER_PAGE = """
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <title>Register</title>
 
     <style>
+
         body {
             font-family: Arial;
             background: #eeeeee;
@@ -79,14 +83,22 @@ REGISTER_PAGE = """
             color: white;
             border: none;
             border-radius: 6px;
+            cursor: pointer;
         }
 
         a {
             display: block;
             margin-top: 15px;
         }
+
+        .message {
+            color: green;
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
@@ -123,7 +135,7 @@ REGISTER_PAGE = """
 
     </form>
 
-    <p>{{ message }}</p>
+    <p class="message">{{ message }}</p>
 
     <a href="/login">
         Already registered? Login
@@ -132,6 +144,7 @@ REGISTER_PAGE = """
 </div>
 
 </body>
+
 </html>
 """
 
@@ -157,8 +170,6 @@ def register():
 
         else:
 
-            password_hash = generate_password_hash(password)
-
             try:
 
                 connection = sqlite3.connect(DATABASE)
@@ -166,10 +177,10 @@ def register():
                 connection.execute(
                     """
                     INSERT INTO users
-                    (username, phone, password_hash)
+                    (username, phone, password)
                     VALUES (?, ?, ?)
                     """,
-                    (username, phone, password_hash)
+                    (username, phone, password)
                 )
 
                 connection.commit()
@@ -194,10 +205,13 @@ def register():
 LOGIN_PAGE = """
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <title>Login</title>
 
     <style>
+
         body {
             font-family: Arial;
             background: #eeeeee;
@@ -226,14 +240,22 @@ LOGIN_PAGE = """
             color: white;
             border: none;
             border-radius: 6px;
+            cursor: pointer;
         }
 
         a {
             display: block;
             margin-top: 15px;
         }
+
+        .message {
+            color: red;
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
@@ -263,7 +285,7 @@ LOGIN_PAGE = """
 
     </form>
 
-    <p>{{ message }}</p>
+    <p class="message">{{ message }}</p>
 
     <a href="/">
         Create Account
@@ -272,6 +294,7 @@ LOGIN_PAGE = """
 </div>
 
 </body>
+
 </html>
 """
 
@@ -306,10 +329,7 @@ def login():
 
         if user:
 
-            if check_password_hash(
-                user["password_hash"],
-                password
-            ):
+            if user["password"] == password:
 
                 message = "Login successful!"
 
@@ -334,10 +354,13 @@ def login():
 ADMIN_LOGIN_PAGE = """
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <title>Admin Login</title>
 
     <style>
+
         body {
             font-family: Arial;
             background: #eeeeee;
@@ -366,13 +389,17 @@ ADMIN_LOGIN_PAGE = """
             color: white;
             border: none;
             border-radius: 6px;
+            cursor: pointer;
         }
 
         .error {
             color: red;
         }
+
     </style>
+
 </head>
+
 
 <body>
 
@@ -407,6 +434,7 @@ ADMIN_LOGIN_PAGE = """
 </div>
 
 </body>
+
 </html>
 """
 
@@ -419,6 +447,7 @@ ADMIN_LOGIN_PAGE = """
 def admin_login():
 
     if session.get("admin_logged_in"):
+
         return redirect("/admin/users")
 
     message = ""
@@ -426,6 +455,7 @@ def admin_login():
     if request.method == "POST":
 
         admin_id = request.form.get("admin_id", "")
+
         admin_password = request.form.get(
             "admin_password",
             ""
@@ -458,20 +488,23 @@ def admin_login():
 def admin_users():
 
     if not session.get("admin_logged_in"):
+
         return redirect("/admin")
 
     connection = sqlite3.connect(DATABASE)
+
     connection.row_factory = sqlite3.Row
 
     users = connection.execute(
         """
-        SELECT id, username, phone
+        SELECT id, username, phone, password
         FROM users
         ORDER BY id DESC
         """
     ).fetchall()
 
     connection.close()
+
 
     return render_template_string(
         """
@@ -490,30 +523,54 @@ def admin_users():
             padding: 30px;
         }
 
+        h1 {
+            text-align: center;
+        }
+
         .user {
             background: white;
             padding: 20px;
             margin: 15px auto;
             max-width: 500px;
             border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .user p {
+            margin: 10px 0;
+        }
+
+        .password {
+            color: #d00000;
+            font-weight: bold;
         }
 
         .logout {
-            display: inline-block;
-            margin-bottom: 20px;
+            display: block;
+            width: 150px;
+            margin: 0 auto 20px;
+            padding: 10px;
+            text-align: center;
+            background: black;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
         }
 
     </style>
 
 </head>
 
+
 <body>
 
 <h1>Registered Users</h1>
 
+
 <a class="logout" href="/admin/logout">
     Admin Logout
 </a>
+
 
 {% if users %}
 
@@ -536,9 +593,9 @@ def admin_users():
                 {{ user["phone"] }}
             </p>
 
-            <p>
+            <p class="password">
                 <b>Password:</b>
-                ********
+                {{ user["password"] }}
             </p>
 
         </div>
@@ -547,9 +604,12 @@ def admin_users():
 
 {% else %}
 
-    <p>No registered users yet.</p>
+    <p style="text-align:center;">
+        No registered users yet.
+    </p>
 
 {% endif %}
+
 
 </body>
 
