@@ -43,352 +43,312 @@ setup_database()
 # =========================
 # REGISTER PAGE
 # =========================
-
-REGISTER_PAGE = """
+REGISTER_HTML = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Register</title>
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
 
-    <style>
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
 
-        * {
-            box-sizing: border-box;
-        }
+<title>Register</title>
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
+<style>
 
-            background:
-                radial-gradient(
-                    circle at top,
-                    #48206d 0%,
-                    #24113d 45%,
-                    #14091f 100%
-                );
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-            color: white;
-            padding: 25px 18px 40px;
-        }
+body {
 
-        .page {
-            width: 100%;
-            max-width: 430px;
-            margin: auto;
-        }
+    min-height: 100vh;
 
-        .back {
-            font-size: 42px;
-            color: white;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 5px;
-        }
+    font-family: Arial, sans-serif;
 
-        .header {
-            text-align: center;
-            padding: 35px 10px 30px;
-        }
+    color: white;
 
-        .header h1 {
-            margin: 0;
-            font-size: 48px;
-            font-weight: 800;
-            font-style: italic;
-            color: #b76cff;
-            text-shadow:
-                0 0 10px rgba(183,108,255,.5);
-        }
-
-        .header h2 {
-            margin: -2px 0 0;
-            font-size: 34px;
-            color: #ffae19;
-            font-style: italic;
-        }
-
-        .form-box {
-            width: 100%;
-        }
-
-        .input-box {
-            width: 100%;
-            height: 72px;
-            margin-bottom: 20px;
-
-            display: flex;
-            align-items: center;
-
-            padding: 0 18px;
-
-            border: 1px solid rgba(190,150,255,.45);
-            border-radius: 18px;
-
-            background:
-                rgba(42, 20, 67, .88);
-
-            box-shadow:
-                inset 0 0 15px rgba(0,0,0,.12);
-        }
-
-        .icon {
-            width: 42px;
-            font-size: 24px;
-            color: #c9a7ff;
-            text-align: center;
-        }
-
-        .input-box input {
-            flex: 1;
-            min-width: 0;
-
-            border: none;
-            outline: none;
-            background: transparent;
-
-            color: white;
-            font-size: 20px;
-            padding-left: 12px;
-        }
-
-        .input-box input::placeholder {
-            color: #a99bb9;
-        }
-
-        .show {
-            cursor: pointer;
-            color: #c5a8e8;
-            font-size: 20px;
-            padding-left: 8px;
-        }
-
-        .register-btn {
-            width: 100%;
-            height: 68px;
-
-            margin-top: 18px;
-
-            border: none;
-            border-radius: 40px;
-
-            background:
-                linear-gradient(
-                    180deg,
-                    #ffe66b,
-                    #ffb300
-                );
-
-            color: #281634;
-            font-size: 25px;
-            font-weight: 600;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 6px 15px rgba(0,0,0,.25);
-        }
-
-        .register-btn:active {
-            transform: scale(.98);
-        }
-
-        .login-btn {
-            width: 100%;
-            height: 68px;
-
-            margin-top: 28px;
-
-            border: 1px solid #d8a83f;
-            border-radius: 40px;
-
-            background: transparent;
-
-            color: #e7b84d;
-            font-size: 23px;
-
-            cursor: pointer;
-        }
-
-        .message {
-            text-align: center;
-            min-height: 24px;
-            margin: 14px 0 0;
-            color: #ff7676;
-            font-size: 15px;
-        }
-
-        .bottom-space {
-            height: 20px;
-        }
-
-    </style>
-</head>
-
-
-<body>
-
-<div class="page">
-
-    <a class="back" href="/login">‹</a>
-
-    <div class="header">
-        <h1>Register</h1>
-        <h2>Create Account</h2>
-    </div>
-
-
-    <div class="form-box">
-
-        <form method="POST">
-
-            <!-- PHONE -->
-
-            <div class="input-box">
-
-                <div class="icon">📱</div>
-
-                <input
-                    type="tel"
-                    name="phone"
-                    placeholder="Enter your phone number"
-                    required
-                >
-
-            </div>
-
-
-            <!-- PASSWORD -->
-
-            <div class="input-box">
-
-                <div class="icon">🔒</div>
-
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    required
-                >
-
-                <div
-                    class="show"
-                    onclick="togglePassword('password')"
-                >
-                    ◉
-                </div>
-
-            </div>
-
-
-            <!-- CONFIRM PASSWORD -->
-
-            <div class="input-box">
-
-                <div class="icon">🔒</div>
-
-                <input
-                    id="confirm_password"
-                    type="password"
-                    name="confirm_password"
-                    placeholder="Enter the password again"
-                    required
-                >
-
-                <div
-                    class="show"
-                    onclick="togglePassword('confirm_password')"
-                >
-                    ◉
-                </div>
-
-            </div>
-
-
-            <!-- USERNAME IS KEPT INTERNALLY
-                 SO THE EXISTING DATABASE STRUCTURE
-                 DOES NOT HAVE TO CHANGE -->
-
-            <input
-                type="hidden"
-                name="username"
-                id="username"
-            >
-
-
-            <button
-                class="register-btn"
-                type="submit"
-            >
-                Register
-            </button>
-
-        </form>
-
-
-        <p class="message">
-            {{ message }}
-        </p>
-
-
-        <button
-            class="login-btn"
-            onclick="window.location.href='/login'"
-        >
-            Password Login
-        </button>
-
-    </div>
-
-    <div class="bottom-space"></div>
-
-</div>
-
-
-<script>
-
-function togglePassword(id) {
-
-    const input = document.getElementById(id);
-
-    if (input.type === "password") {
-        input.type = "text";
-    } else {
-        input.type = "password";
-    }
+    background:
+        radial-gradient(
+            circle at top,
+            #432366,
+            #180b2d
+        );
 }
 
 
-/*
-    Generate an internal username from phone number.
-    This keeps the existing SQLite database structure.
-*/
+/* =========================================================
+   HEADER
+   ========================================================= */
 
-document.querySelector("form").addEventListener(
-    "submit",
-    function () {
+.top {
 
-        const phone =
-            document.querySelector(
-                'input[name="phone"]'
-            ).value.trim();
+    height: 260px;
 
-        document.getElementById("username").value =
-            "user_" + phone.replace(/[^0-9]/g, "");
+    position: relative;
 
-    }
-);
+    overflow: hidden;
 
-</script>
+    background:
+        linear-gradient(
+            rgba(25,5,50,.35),
+            rgba(25,5,50,.88)
+        ),
+        url("https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1200&auto=format&fit=crop");
 
-</body>
-</html>
-"""
+    background-size: cover;
+
+    background-position: center;
+}
+
+
+.back {
+
+    position: absolute;
+
+    top: 15px;
+
+    left: 18px;
+
+    font-size: 42px;
+}
+
+
+.language {
+
+    position: absolute;
+
+    top: 20px;
+
+    right: 18px;
+
+    font-size: 14px;
+}
+
+
+.logo {
+
+    position: absolute;
+
+    top: 90px;
+
+    width: 100%;
+
+    text-align: center;
+}
+
+
+.logo h1 {
+
+    font-size: 43px;
+
+    font-style: italic;
+
+    color: #b65cff;
+}
+
+
+.logo h2 {
+
+    font-size: 35px;
+
+    color: #ff9d16;
+}
+
+
+/* =========================================================
+   REGISTER FORM
+   ========================================================= */
+
+.container {
+
+    width: calc(100% - 32px);
+
+    max-width: 430px;
+
+    margin: 15px auto;
+}
+
+
+.message {
+
+    padding: 10px;
+
+    margin-bottom: 12px;
+
+    border-radius: 10px;
+
+    text-align: center;
+
+    color: #ffd75a;
+
+    background:
+        rgba(255,255,255,.08);
+}
+
+
+.input-box {
+
+    height: 58px;
+
+    margin-bottom: 13px;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 0 13px;
+
+    border-radius: 14px;
+
+    border: 1px solid
+        rgba(190,145,230,.42);
+
+    background: #2b1846;
+}
+
+
+.icon {
+
+    width: 32px;
+
+    min-width: 32px;
+
+    text-align: center;
+
+    font-size: 19px;
+}
+
+
+.country {
+
+    margin-right: 8px;
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+
+input {
+
+    width: 100%;
+
+    height: 100%;
+
+    min-width: 0;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 16px;
+}
+
+
+input::placeholder {
+
+    color: #9d88b7;
+}
+
+
+/* =========================================================
+   PASSWORD EYE
+   ========================================================= */
+
+.eye {
+
+    width: 30px;
+
+    min-width: 30px;
+
+    height: 30px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+}
+
+
+.eye-shape {
+
+    width: 21px;
+
+    height: 13px;
+
+    border: 2px solid #bda5d6;
+
+    border-radius: 80% 20%;
+
+    transform: rotate(45deg);
+
+    position: relative;
+}
+
+
+.eye-shape::after {
+
+    content: "";
+
+    width: 5px;
+
+    height: 5px;
+
+    position: absolute;
+
+    top: 2px;
+
+    left: 6px;
+
+    border-radius: 50%;
+
+    background: #bda5d6;
+}
+
+
+/* =========================================================
+   REGISTER BUTTON
+   ========================================================= */
+
+.register {
+
+    width: 100%;
+
+    height: 58px;
+
+    margin-top: 20px;
+
+    border: none;
+
+    border-radius: 30px;
+
+    background:
+        linear-gradient(
+            #ffe66b,
+            #efa800
+        );
+
+    color: #28132f;
+
+    font-size: 20px;
+
+    cursor: pointer;
+}
 
 
 # =========================
