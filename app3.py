@@ -395,11 +395,9 @@ def register():
                 connection = sqlite3.connect(DATABASE)
 
                 connection.execute(
-                    """
-                    INSERT INTO users
+                    "INSERT INTO users
                     (username, phone, password)
-                    VALUES (?, ?, ?)
-                    """,
+                    VALUES (?, ?, ?)",
                     (
                         username,
                         phone,
