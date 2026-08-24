@@ -446,11 +446,9 @@ def login():
         connection.row_factory = sqlite3.Row
 
         user = connection.execute(
-            """
             SELECT *
             FROM users
-            WHERE username = ?
-            """,
+            WHERE username = ?,
             (username,)
         ).fetchone()
 
