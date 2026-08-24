@@ -495,7 +495,7 @@ ADMIN_LOGIN_PAGE = """
 
 body {
     margin: 0;
-    min-height: 100vh;
+    min-height: 0vh;
     font-family: Arial;
 
     background:
