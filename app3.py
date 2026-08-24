@@ -43,6 +43,7 @@ setup_database()
 # =========================
 # REGISTER PAGE
 # =========================
+
 REGISTER_HTML = """
 <!DOCTYPE html>
 <html lang="en">
